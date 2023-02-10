@@ -16,7 +16,7 @@ commendationController.createCommendationOfMonth = catchAsync(
     let currentUser = await User.findById(currentUserId);
     console.log("currentUser", currentUser);
 
-    const { userId, month, name } = req.body;
+    const { userId, month, name, year } = req.body;
 
     if (currentUser.department !== "HR")
       throw new AppError(
@@ -28,31 +28,22 @@ commendationController.createCommendationOfMonth = catchAsync(
     // find Commendation of month, check
     let commendations = await Commendation.findOne({
       month,
+      year
     });
     // if not exist, create new commendation of month
     if (!commendations) {
       await Commendation.create({
         month,
+        year
       });
     }
-    // if the user exist in that commendation return AppError(User already added)
-    // commendations = await Commendation.findOne({
-    //   month,
-    // }).lean();
 
-
-    // if not add userId to commendation of the month,
-
-    // await Commendation.findOneAndUpdate(
-    //   {
-    //     month,
-    //   },
-    //   { $push: { name: userId } }
-    // );
-    commendations = await Commendation.create({
+    commendations = await Commendation.findOneAndUpdate({
+      month,year}, {
       month,
       name,
-  });
+      year
+  },{new:true});
 
   if (commendations.name.includes(userId))
   throw new AppError(404, `User already added`, "Push Error");
@@ -76,6 +67,8 @@ commendationController.getCommendationOfMonth = catchAsync(
     const currentMonth = dayjs().month();
 
     const month = req.params.month;
+    const year = req.params.year
+
     let { page, limit } = {...req.query};
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
@@ -95,6 +88,7 @@ commendationController.getCommendationOfMonth = catchAsync(
     console.log("mth",month)
     const currentComm = await Commendation.findOne({
       month,
+      year,
       createAt: {
         $gte: dayjs().startOf("year"),
         $lte: dayjs().endOf("year"),

@@ -68,7 +68,7 @@ taskController.createTasks = catchAsync(async (req, res, next) => {
     
     await User.findByIdAndUpdate(assigner, {$push: {tasks: tasks._id}}) 
     
-    tasks = await tasks.populate("handler").lean();
+    tasks = await tasks.populate("handler");
 
 	return sendResponse(res,200,true,tasks,null,"Create Task Success")
 });

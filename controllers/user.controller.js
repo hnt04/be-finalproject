@@ -129,6 +129,11 @@ userController.updateUsers = catchAsync(async (req, res, next) => {
 
     let users = await User.findById(userId);
     if(!users) throw new AppError(400,"User Not Found","Update User Error");
+
+    let password = req.body.password;
+    
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
      
     const allowed = ["name","email","password","avatarUrl","department","role","phone"];
     allowed.forEach((field) => {
@@ -136,6 +141,9 @@ userController.updateUsers = catchAsync(async (req, res, next) => {
             users[field] = req.body[field];
         }
     });
+
+    users.password = password;
+
     await users.save();
 
     return sendResponse(res,200,true,users,null,"Update User Successful!")

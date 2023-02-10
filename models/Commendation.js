@@ -25,6 +25,17 @@ const commendationSchema = new mongoose.Schema(
             ],
             required: true,
       },
+      year: {
+        type: String,
+            enum: [
+            "2023",
+            "2024",
+            "2025",
+            "2026",
+            "2027",
+            ],
+            required: true,
+      },
   },
   {
     timestamps: true,
