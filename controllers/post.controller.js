@@ -22,14 +22,15 @@ postController.createPosts = catchAsync(async (req, res, next) => {
     let posts = await Post.create({
         content,
         image,
-        author: currentUserId
+        author: currentUserId,
+        check: false 
     });
     await calculatePost(currentUserId);
 
     posts = await Post.findById(posts._id).populate({path:"author",options:{lean:true}}).lean();
 
     return sendResponse(
-        res,200,true,posts,null,"Create New Post Successful!"
+        res,200,true,posts,null,"Post have to browse by HR!"
     )
 
 });    
@@ -67,6 +68,29 @@ postController.updatePosts = catchAsync(async (req, res, next) => {
     return sendResponse(res,200,true,posts,null,"Update Post Successful!")
 });
 
+postController.updateCheckPosts = catchAsync(async (req, res, next) => {
+    const postId = req.params.id;
+    const currentUserId = req.userId;
+
+    let posts = await Post.findById(postId);
+    if(!posts) throw new AppError(400,"Post Not Found","Update Post Error");
+
+    let user = await User.findById(currentUserId);
+    const postChecker = user.department === 'HR';
+    if(!postChecker) throw new AppError(400,"Only HR can browse this post","Update Post Error");
+
+    const allowed = ["check"];
+    allowed.forEach((field) => {
+        if(req.body[field] !== undefined) {
+            posts[field] = req.body[field];
+        }
+    });
+
+    await posts.save();
+
+    return sendResponse(res,200,true,posts,null,"Update Post Successful!")
+});
+
 postController.deletePosts = catchAsync(async (req, res, next) => {
     const currentUserId = req.userId;
     const postId = req.params.id;
@@ -84,7 +108,6 @@ postController.deletePosts = catchAsync(async (req, res, next) => {
 });
 
 postController.getPosts = catchAsync(async (req, res, next) => {
-    const currentUserId = req.userId;
     const userId = req.params.userId;
 
     let { page, limit } = {...req.query};
@@ -95,7 +118,7 @@ postController.getPosts = catchAsync(async (req, res, next) => {
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
         
-    const filterConditions = [{isDeleted: false}];
+    const filterConditions = [{isDeleted: false}, {check:true}];
 
     const filterCriteria = filterConditions.length
     ? { $and: filterConditions}
@@ -107,13 +130,59 @@ postController.getPosts = catchAsync(async (req, res, next) => {
     const offset = (page - 1)*limit;
 
     let posts = await Post.find(filterCriteria)
-    .sort({ createAt: -1})
+    .sort({createdAt: -1})
     .skip(offset)
     .limit(limit)
     .populate("author");
 
     sendResponse(res,200,true,{posts,totalPage,count},null,"Filter list of posts success")
 });
+
+postController.getUnCheckPosts = catchAsync(async (req, res, next) => {
+    const currentUserId = req.userId;
+
+    console.log("request",req.userId)
+
+    let currentUser = await User.findById(currentUserId);
+
+    if (currentUser.department !== "HR")
+    throw new AppError(
+      404,
+      `Only HR can browse this Post`,
+      "Push Error"
+    );
+
+    let { page, limit } = {...req.query};
+
+    let user = await User.findById(currentUserId);
+    if(!user) throw new AppError(400,"User Not Found","Get Post Error");
+    
+    page = parseInt(page) || 1;
+    limit = parseInt(limit) || 10;
+        
+    const filterConditions = [{isDeleted: false}, {check:false}];
+
+    const filterCriteria = filterConditions.length
+    ? { $and: filterConditions}
+    : {};
+    console.log("filterCriteria un-check",filterCriteria)
+
+    const count = await Post.countDocuments(filterCriteria);
+    const totalPage = Math.ceil(count/limit);
+    const offset = (page - 1)*limit;
+
+
+    let posts = await Post.find({isDeleted:false,check:false})
+    .sort({createdAt: -1})
+    .skip(offset)
+    .limit(limit)
+    .populate("author");
+
+    console.log("posts", posts)
+
+    sendResponse(res,200,true,{posts,totalPage,count},null,"Filter list of posts success")
+});
+
 
 postController.getCommentsOfPost = catchAsync(async (req, res, next) => {
     const postId= req.params.id;

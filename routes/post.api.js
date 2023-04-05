@@ -27,6 +27,14 @@ router.get('/user/:userId', authentication.loginRequired, validators.validate([
    param("userId").exists().isString().custom(validators.checkObjectId)
 ]), postController.getPosts);
 
+ // GET ALL POST UNCHECK
+ /**
+  * @route GET /posts/uncheck/:userId
+  * @description Get a list of posts
+  * @access Login require
+ */
+  router.get('/uncheck', authentication.loginRequired, postController.getUnCheckPosts);
+
 // GET SINGLE POST
 /**
  * @route GET /posts/:id
@@ -46,6 +54,17 @@ router.get('/:id', authentication.loginRequired, validators.validate([
 router.put('/:id', authentication.loginRequired, validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId)
 ]), postController.updatePosts);
+
+// UPDATE CHECK
+/**
+ * @route PUT /posts/uncheck/:id
+ * @description browse a post
+ * @access Login require
+ */
+ router.put('/uncheck/:id', authentication.loginRequired, validators.validate([
+    param("id").exists().isString().custom(validators.checkObjectId)
+]), postController.updateCheckPosts);
+
 
 // DELETE
 /**

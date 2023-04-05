@@ -137,7 +137,7 @@ taskController.getPersonalTasks = catchAsync(async (req, res, next) => {
     .populate("assigner");
 
     let tasksAssign = await Task.find({assigner: currentUserId})
-    .sort({ createAt: -1})
+    .sort({ createdAt: -1})
     .populate("handler");
 
     // console.log("tasks",tasks)
@@ -156,23 +156,6 @@ taskController.getSingleTask = catchAsync(async (req, res, next) => {
 
     return sendResponse(res,200,true,tasks,null,"Get Task Successful")
  });
-
-//  taskController.getTasksOfId = catchAsync(async (req, res, next) => {
-//     const { currentUserId } = req;
-  
-//     const tasksList = await Task.find({
-//       handler: currentUserId,
-//     }).populate("handler");
-  
-//     return sendResponse(
-//       res,
-//       200,
-//       true,
-//       { tasksList },
-//       null,
-//       "Get list of Task Successful"
-//     );
-//   });
 
 taskController.editTasks = catchAsync(async (req, res, next) => {
     const taskId = req.params.id;

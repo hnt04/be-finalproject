@@ -28,31 +28,37 @@ commendationController.createCommendationOfMonth = catchAsync(
     // find Commendation of month, check
     let commendations = await Commendation.findOne({
       month,
-      year
+      year,
     });
     // if not exist, create new commendation of month
     if (!commendations) {
       await Commendation.create({
         month,
-        year
+        year,
       });
     }
 
-    commendations = await Commendation.findOneAndUpdate({
-      month,year}, {
-      month,
-      name,
-      year
-  },{new:true});
+    commendations = await Commendation.findOneAndUpdate(
+      {
+        month,
+        year,
+      },
+      {
+        month,
+        name,
+        year,
+      },
+      { new: true }
+    );
 
-  if (commendations.name.includes(userId))
-  throw new AppError(404, `User already added`, "Push Error");
+    if (commendations.name.includes(userId))
+      throw new AppError(404, `User already added`, "Push Error");
 
     sendResponse(
       res,
       200,
       true,
-      {commendations},
+      { commendations },
       null,
       "Filter list commendation of users success"
     );
@@ -67,44 +73,97 @@ commendationController.getCommendationOfMonth = catchAsync(
     const currentMonth = dayjs().month();
 
     const month = req.params.month;
-    const year = req.params.year
+    const year = req.params.year;
 
-    let { page, limit } = {...req.query};
+    let { page, limit } = { ...req.query };
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
 
-    const filterConditions = [{isDeleted: false}];
+    const filterConditions = [{ isDeleted: false }];
 
     const filterCriteria = filterConditions.length
-    ? { $and: filterConditions}
-    : {};
-    console.log("filterCriteria",filterCriteria)
+      ? { $and: filterConditions }
+      : {};
+    console.log("filterCriteria", filterCriteria);
 
     const count = await Commendation.countDocuments(filterCriteria);
-    const totalPage = Math.ceil(count/limit);
-    const offset = (page - 1)*limit;
+    const totalPage = Math.ceil(count / limit);
+    const offset = (page - 1) * limit;
 
+    console.log("mth", month);
+    // const currentComm = await Commendation.findOne({
+    //   month,
+    //   year,
+    //   createdAt: {
+    //     $gte: dayjs().startOf("year"),
+    //     $lte: dayjs().endOf("year"),
+    //   },
+    // });
 
-    console.log("mth",month)
-    const currentComm = await Commendation.findOne({
-      month,
-      year,
-      createAt: {
-        $gte: dayjs().startOf("year"),
-        $lte: dayjs().endOf("year"),
-      },
+    let commendations = await Commendation.find()
+      .skip(offset)
+      .limit(limit)
+      .populate("name")
+      .lean();
+    console.log("commendations", commendations);
+
+    commendations = commendations.map((c) => {
+      let monthByNumber = 1;
+      switch (c.month) {
+        case "January":
+          monthByNumber = 1;
+          break;
+        case "February":
+          monthByNumber = 2;
+          break;
+        case "March":
+          monthByNumber = 3;
+          break;
+        case "April":
+          monthByNumber = 4;
+          break;
+        case "May":
+          monthByNumber = 5;
+          break;
+        case "June":
+          monthByNumber = 6;
+          break;
+        case "July":
+          monthByNumber = 7;
+          break;
+        case "August":
+          monthByNumber = 8;
+          break;
+        case "September":
+          monthByNumber = 9;
+          break;
+        case "October":
+          monthByNumber = 10;
+          break;
+        case "November":
+          monthByNumber = 11;
+          break;
+        case "December":
+          monthByNumber = 12;
+          break;
+        default:
+          break;
+      }
+      return {...c,monthByNumber}
+    }).sort((a,b) => {
+      let yearDiff = parseInt(a.year) - parseInt(b.year)
+
+      if(yearDiff !== 0 ) {
+        return yearDiff
+      }
+      return a.monthByNumber - b.monthByNumber
     });
-
-    const commendations = await Commendation.find(currentComm).sort({ createAt: -1})
-    .skip(offset)
-    .limit(limit).populate("name");
-    console.log("commendations",commendations)
 
     sendResponse(
       res,
       200,
       true,
-      {commendations,totalPage,count},
+      { commendations, totalPage, count },
       null,
       "Filter list commendation of users success"
     );

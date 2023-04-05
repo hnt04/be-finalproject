@@ -92,7 +92,7 @@ userController.getUsers = catchAsync(async (req, res, next) => {
     const offset = (page - 1)*limit;
 
     let users = await User.find(filterCriteria)
-    .sort({ createAt: -1})
+    .sort({ createdAt: -1})
     .skip(offset)
     .limit(limit);
     console.log("users",users)
@@ -131,9 +131,14 @@ userController.updateUsers = catchAsync(async (req, res, next) => {
     if(!users) throw new AppError(400,"User Not Found","Update User Error");
 
     let password = req.body.password;
-    
+    if(password) {
+    console.log("password", password)
+
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
+
+    users.password = password;
+}
      
     const allowed = ["name","email","password","avatarUrl","department","role","phone"];
     allowed.forEach((field) => {
@@ -141,8 +146,6 @@ userController.updateUsers = catchAsync(async (req, res, next) => {
             users[field] = req.body[field];
         }
     });
-
-    users.password = password;
 
     await users.save();
 
