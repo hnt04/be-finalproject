@@ -154,8 +154,7 @@ postController.getUnCheckPosts = catchAsync(async (req, res, next) => {
 
     let { page, limit } = {...req.query};
 
-    let user = await User.findById(currentUserId);
-    if(!user) throw new AppError(400,"User Not Found","Get Post Error");
+    if(!currentUser) throw new AppError(400,"User Not Found","Get Post Error");
     
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 10;
