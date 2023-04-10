@@ -76,6 +76,16 @@ router.delete('/:id', authentication.loginRequired, validators.validate([
     param("id").exists().isString().custom(validators.checkObjectId)
 ]), postController.deletePosts);
 
+// DELETE UNCHECK
+/**
+ * @route DELETE /posts/uncheck
+ * @description delete a post
+ * @access Login require
+ */
+router.delete('/uncheck/:id', authentication.loginRequired, validators.validate([
+    param("id").exists().isString().custom(validators.checkObjectId)
+]), postController.deleteUnCheckPosts);
+
 // GET ALL POST OF USER
 /**
  * @route GET /users/:userId/posts

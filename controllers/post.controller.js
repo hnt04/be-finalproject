@@ -107,6 +107,25 @@ postController.deletePosts = catchAsync(async (req, res, next) => {
     return sendResponse(res,200,true,posts,null,"Delete Post Successful")
 });
 
+postController.deleteUnCheckPosts = catchAsync(async (req, res, next) => {
+    const currentUserId = req.userId;
+    const postId = req.params.id;
+
+    let user = await User.findById(currentUserId);
+    const postChecker = user.department === 'HR';
+    if(!postChecker) throw new AppError(400,"Only HR can delete this post","Delete Post Error");
+
+    const posts = await Post.findOneAndUpdate(
+        { _id: postId},
+        { isDeleted: true },
+        {new:true}
+    );
+
+    if(!posts) throw new AppError(400,"Post Not Found/ User Not Authorized","Delete Post Error");
+    
+    return sendResponse(res,200,true,posts,null,"Delete Post Successful")
+});
+
 postController.getPosts = catchAsync(async (req, res, next) => {
     const userId = req.params.userId;
 

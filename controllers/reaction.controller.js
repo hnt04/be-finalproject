@@ -60,6 +60,7 @@ reactionController.saveReactions = catchAsync(async (req, res, next) => {
     }
     
     const newReactions = await calculateReactions(targetId,targetType);
+    console.log
 
     return sendResponse(res,200,true,newReactions,null,"Create Reaction Successful")
 })
