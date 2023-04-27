@@ -77,7 +77,7 @@ commendationController.getCommendationOfMonth = catchAsync(
 
     let { page, limit } = { ...req.query };
     page = parseInt(page) || 1;
-    limit = parseInt(limit) || 10;
+    limit = parseInt(limit) || 1;
 
     const filterConditions = [{ isDeleted: false }];
 
@@ -91,14 +91,6 @@ commendationController.getCommendationOfMonth = catchAsync(
     const offset = (page - 1) * limit;
 
     console.log("mth", month);
-    // const currentComm = await Commendation.findOne({
-    //   month,
-    //   year,
-    //   createdAt: {
-    //     $gte: dayjs().startOf("year"),
-    //     $lte: dayjs().endOf("year"),
-    //   },
-    // });
 
     let commendations = await Commendation.find()
       .skip(offset)

@@ -6,7 +6,7 @@ const reactionSchema = new mongoose.Schema(
         },
         targetType: {
             type:String, 
-            enum: ["Post","Comment"],
+            enum: ["Post","Comment","Commendation"],
             required: true
         },
         targetId: {
